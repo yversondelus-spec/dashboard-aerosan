@@ -96,13 +96,14 @@ def main():
     xls = pd.ExcelFile(excel_bytes)
     print(f"Hojas: {xls.sheet_names}")
 
+    # ── DHL: leer TODAS las hojas que empiecen con "DHL" (2024, 2025, 2026) ──
     dhl_data = []
-    for sh in ["DHL 2026", "DHL 2025 ", "DHL 2025"]:
-        if sh in xls.sheet_names:
+    for sh in xls.sheet_names:
+        if sh.strip().startswith("DHL") and not "Time" in sh:
             df = pd.read_excel(xls, sheet_name=sh, header=None, skiprows=3)
-            dhl_data = procesar_hitos(df)
-            print(f"OK {sh}: {len(dhl_data)} filas")
-            break
+            rows = procesar_hitos(df)
+            dhl_data.extend(rows)
+            print(f"OK {sh}: {len(rows)} filas")
 
     mas_data = []
     for sh in ["MAS AIR ", "MAS AIR"]:
@@ -120,13 +121,13 @@ def main():
 
     fecha_update = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
     template = open("template.html", "r", encoding="utf-8").read()
-    template = template.replace("__DHL_DATA__", json.dumps(dhl_data, ensure_ascii=False))
-    template = template.replace("__MAS_DATA__", json.dumps(mas_data, ensure_ascii=False))
-    template = template.replace("__DLY_DATA__", json.dumps(dly_data, ensure_ascii=False))
-    template = template.replace("__FECHA_UPD__", fecha_update)
+    template = template.replace("_DHL_DATA_", json.dumps(dhl_data, ensure_ascii=False))
+    template = template.replace("_MAS_DATA_", json.dumps(mas_data, ensure_ascii=False))
+    template = template.replace("_DLY_DATA_", json.dumps(dly_data, ensure_ascii=False))
+    template = template.replace("_FECHA_UPD_", fecha_update)
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(template)
     print(f"Dashboard generado OK — {fecha_update}")
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     main()
