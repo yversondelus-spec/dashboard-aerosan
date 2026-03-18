@@ -121,10 +121,10 @@ def main():
 
     fecha_update = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
     template = open("template.html", "r", encoding="utf-8").read()
-    template = template.replace("_DHL_DATA_", json.dumps(dhl_data, ensure_ascii=False))
-    template = template.replace("_MAS_DATA_", json.dumps(mas_data, ensure_ascii=False))
-    template = template.replace("_DLY_DATA_", json.dumps(dly_data, ensure_ascii=False))
-    template = template.replace("_FECHA_UPD_", fecha_update)
+    template = template.replace("__DHL_DATA__", json.dumps(dhl_data, ensure_ascii=False))
+    template = template.replace("__MAS_DATA__", json.dumps(mas_data, ensure_ascii=False))
+    template = template.replace("__DLY_DATA__", json.dumps(dly_data, ensure_ascii=False))
+    template = template.replace("__FECHA_UPD__", fecha_update)
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(template)
     print(f"Dashboard generado OK — {fecha_update}")
