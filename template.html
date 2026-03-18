@@ -416,15 +416,33 @@ function setMasFilter(y){
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 const MONTHS=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 function isOT(mo,d){
-  // ON TIME si: dice "ON TIME", o "NIL", o motivo vacío sin demora
   if(!mo||mo.trim()==='') return (d===0||d===undefined);
-  const u=mo.toUpperCase().trim();
-  return u==='ON TIME'||u.includes('ON TIME')||u==='NIL';
+  const u=mo.toUpperCase().trim().replace(/\s+/g,' ');
+  return u==='ON TIME'||u==='ONTIME'||u.includes('ON TIME')||u==='NIL';
 }
 function isCX(mo){
   if(!mo||mo.trim()==='') return false;
   const u=mo.toUpperCase().trim();
   return u.includes('CANCELADO')||u==='CNCL'||u.startsWith('CNCL');
+}
+
+// Normaliza texto de motivo: uppercase, sin doble espacio, consolida variantes
+function normalizarMotivo(mo){
+  if(!mo||mo.trim()==='') return '';
+  let u = mo.toUpperCase().trim().replace(/\s+/g,' ');
+  // Quitar prefijos redundantes
+  u = u.replace(/^DLY\s+/,'');
+  // Normalizar guiones y barras de separación
+  u = u.replace(/\s*[-\/]+\s*/g,' / ');
+  // Consolidar variantes de ARRASTRE SEGMENTO
+  if(u.includes('ARRASTRE') && (u.includes('EZE') || u.includes('SCL'))){
+    // Extraer causas adicionales después del primer "/"
+    const partes = u.split(' / ');
+    const causasExtra = partes.slice(1).filter(p=>!p.includes('EZE')&&!p.includes('SCL')&&!p.includes('ARRASTRE'));
+    if(causasExtra.length>0) return 'ARRASTRE EZE-SCL / ' + causasExtra.join(' / ');
+    return 'ARRASTRE EZE-SCL';
+  }
+  return u;
 }
 function mkBar(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
 const GRID_COLOR='#1a3a6e'; const TICK_COLOR='#7ea8d8';
@@ -433,8 +451,9 @@ function baseScales(){return{x:{ticks:{color:TICK_COLOR,font:{size:11}},grid:{co
 function renderMotivos(data, elId, barClass){
   const counts={};
   data.forEach(r=>{
-    const m=r.mo.trim();
-    if(!m||isOT(r.mo,r.d)||isCX(r.mo)) return;
+    if(isCX(r.mo)||isOT(r.mo,r.d)) return;
+    const m=normalizarMotivo(r.mo);
+    if(!m) return;
     counts[m]=(counts[m]||0)+1;
   });
   const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,7);
