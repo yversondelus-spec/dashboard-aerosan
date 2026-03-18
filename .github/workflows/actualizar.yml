@@ -1,4 +1,4 @@
-name: Actualizar Dashboard
+name: .github/workflows/actualizar.yml
 
 on:
   schedule:
