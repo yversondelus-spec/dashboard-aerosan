@@ -41,6 +41,7 @@ body{background:var(--navy);color:var(--text);font-family:'Barlow',sans-serif;fo
 .month-btn:hover{border-color:var(--accent2);color:var(--text);}
 .month-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 .month-btn.all{background:var(--gold);border-color:var(--gold);color:#000;font-weight:600;}
+.filter-sep{width:1px;height:20px;background:var(--border);margin:0 6px;}
 .page{display:none;padding:1.5rem 2rem;display:flex;flex-direction:column;gap:1.25rem;}
 .page.hidden{display:none!important;}
 
@@ -138,28 +139,34 @@ body{background:var(--navy);color:var(--text);font-family:'Barlow',sans-serif;fo
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('dhl')">✈ DHL 2026</div>
+  <div class="tab active" onclick="switchTab('dhl')">✈ DHL</div>
   <div class="tab tab-mas" onclick="switchTab('mas')">✈ MAS AIR</div>
   <div class="tab tab-dly" onclick="switchTab('dly')">⚠ DLY DETAILS</div>
 </div>
 
-<!-- ═══════════════════════════════ DHL 2026 ═══════════════════════════════ -->
+<!-- ═══════════════════════════════ DHL ═══════════════════════════════ -->
 <div id="page-dhl" class="page">
   <div class="filterbar">
+    <span class="filter-label">AÑO</span>
+    <button class="month-btn all active" onclick="setDhlYear('all')">TODOS</button>
+    <button class="month-btn" onclick="setDhlYear(2024)">2024</button>
+    <button class="month-btn" onclick="setDhlYear(2025)">2025</button>
+    <button class="month-btn" onclick="setDhlYear(2026)">2026</button>
+    <div class="filter-sep"></div>
     <span class="filter-label">MES</span>
-    <button class="month-btn all active" onclick="setMonth('dhl','all')">TODOS</button>
-    <button class="month-btn" onclick="setMonth('dhl',1)">ENE</button>
-    <button class="month-btn" onclick="setMonth('dhl',2)">FEB</button>
-    <button class="month-btn" onclick="setMonth('dhl',3)">MAR</button>
-    <button class="month-btn" onclick="setMonth('dhl',4)">ABR</button>
-    <button class="month-btn" onclick="setMonth('dhl',5)">MAY</button>
-    <button class="month-btn" onclick="setMonth('dhl',6)">JUN</button>
-    <button class="month-btn" onclick="setMonth('dhl',7)">JUL</button>
-    <button class="month-btn" onclick="setMonth('dhl',8)">AGO</button>
-    <button class="month-btn" onclick="setMonth('dhl',9)">SEP</button>
-    <button class="month-btn" onclick="setMonth('dhl',10)">OCT</button>
-    <button class="month-btn" onclick="setMonth('dhl',11)">NOV</button>
-    <button class="month-btn" onclick="setMonth('dhl',12)">DIC</button>
+    <button class="month-btn all active" onclick="setDhlMonth('all')">TODOS</button>
+    <button class="month-btn" onclick="setDhlMonth(1)">ENE</button>
+    <button class="month-btn" onclick="setDhlMonth(2)">FEB</button>
+    <button class="month-btn" onclick="setDhlMonth(3)">MAR</button>
+    <button class="month-btn" onclick="setDhlMonth(4)">ABR</button>
+    <button class="month-btn" onclick="setDhlMonth(5)">MAY</button>
+    <button class="month-btn" onclick="setDhlMonth(6)">JUN</button>
+    <button class="month-btn" onclick="setDhlMonth(7)">JUL</button>
+    <button class="month-btn" onclick="setDhlMonth(8)">AGO</button>
+    <button class="month-btn" onclick="setDhlMonth(9)">SEP</button>
+    <button class="month-btn" onclick="setDhlMonth(10)">OCT</button>
+    <button class="month-btn" onclick="setDhlMonth(11)">NOV</button>
+    <button class="month-btn" onclick="setDhlMonth(12)">DIC</button>
   </div>
   <div class="kpi-grid">
     <div class="kpi-card kpi-blue"><div class="kpi-label">Total Vuelos</div><div class="kpi-value" id="d-total">—</div><div class="kpi-sub" id="d-total-sub"></div></div>
@@ -167,6 +174,14 @@ body{background:var(--navy);color:var(--text);font-family:'Barlow',sans-serif;fo
     <div class="kpi-card kpi-red"><div class="kpi-label">Cancelados</div><div class="kpi-value" id="d-cx">—</div><div class="kpi-sub" id="d-cx-sub"></div></div>
     <div class="kpi-card kpi-gold"><div class="kpi-label">Total DLY</div><div class="kpi-value" id="d-dly">—</div><div class="kpi-sub" id="d-dly-sub"></div></div>
   </div>
+
+  <!-- Gráfico comparativo por año (solo visible cuando AÑO = TODOS) -->
+  <div id="dhl-compare-panel" class="chart-panel" style="display:none;">
+    <div class="panel-title"><span class="ptdot"></span>Comparativa anual DHL — Minutos DLY por mes</div>
+    <div class="legend" id="dhl-compare-legend"></div>
+    <div style="position:relative;width:100%;height:220px;"><canvas id="dhl-chart-compare"></canvas></div>
+  </div>
+
   <div class="charts-grid">
     <div class="chart-panel">
       <div class="panel-title"><span class="ptdot"></span>Vuelos por mes — On Time vs Demora vs Cancelado</div>
@@ -254,13 +269,11 @@ body{background:var(--navy);color:var(--text);font-family:'Barlow',sans-serif;fo
 <script>
 // ── DATA ─────────────────────────────────────────────────────────────────────
 const DHL=__DHL_DATA__;
-
 const MAS=__MAS_DATA__;
-
 const DLYD=__DLY_DATA__;
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let dhlMonth='all', masYear='all';
+let dhlYear='all', dhlMonth='all', masYear='all';
 const charts={};
 
 // ── TAB SWITCH ────────────────────────────────────────────────────────────────
@@ -276,13 +289,20 @@ function switchTab(t){
   if(t==='dly') renderDLY();
 }
 
-// ── MONTH FILTER ──────────────────────────────────────────────────────────────
-function setMonth(src, m){
+// ── DHL FILTERS ───────────────────────────────────────────────────────────────
+function setDhlYear(y){
+  dhlYear=y;
+  const yearBtns=document.querySelectorAll('#page-dhl .filterbar .month-btn');
+  // primeros 4 botones son de año
+  ['all',2024,2025,2026].forEach((v,i)=>yearBtns[i].classList.toggle('active',v===y));
+  renderDHL();
+}
+function setDhlMonth(m){
   dhlMonth=m;
-  document.querySelectorAll('#page-dhl .month-btn').forEach((b,i)=>{
-    const vals=['all',1,2,3,4,5,6,7,8,9,10,11,12];
-    b.classList.toggle('active', vals[i]===m);
-  });
+  const allBtns=document.querySelectorAll('#page-dhl .filterbar .month-btn');
+  // botones 5..17 son de mes (índice 4 en adelante)
+  const monthVals=['all',1,2,3,4,5,6,7,8,9,10,11,12];
+  monthVals.forEach((v,i)=>allBtns[i+4].classList.toggle('active',v===m));
   renderDHL();
 }
 function setMasFilter(y){
@@ -296,7 +316,7 @@ function setMasFilter(y){
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 const MONTHS=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 function isOT(mo){return mo&&mo.toUpperCase().includes('ON TIME');}
-function isCX(mo,m){return mo&&(mo.toUpperCase().includes('CANCELADO')||mo.toUpperCase()==='CANCELADO');}
+function isCX(mo){return mo&&(mo.toUpperCase().includes('CANCELADO')||mo.toUpperCase()==='CANCELADO');}
 function mkBar(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
 const GRID_COLOR='#1e3558'; const TICK_COLOR='#6b89a8';
 function baseScales(){return{x:{ticks:{color:TICK_COLOR,font:{size:11}},grid:{color:GRID_COLOR}},y:{ticks:{color:TICK_COLOR,font:{size:11}},grid:{color:GRID_COLOR}}};}
@@ -340,7 +360,11 @@ function renderGT(data, elId){
 
 // ── DHL RENDER ────────────────────────────────────────────────────────────────
 function renderDHL(){
-  const data=dhlMonth==='all'?DHL:DHL.filter(r=>r.mn===dhlMonth);
+  // Filtrar por año y mes
+  let data=DHL;
+  if(dhlYear!=='all') data=data.filter(r=>r.an===dhlYear);
+  if(dhlMonth!=='all') data=data.filter(r=>r.mn===dhlMonth);
+
   const total=data.length;
   const canx=data.filter(r=>isCX(r.mo)).length;
   const operable=total-canx;
@@ -348,6 +372,7 @@ function renderDHL(){
   const pct=operable>0?Math.round(ot/operable*100):0;
   const dlyRows=data.filter(r=>r.d>0);
   const totalDly=dlyRows.reduce((s,r)=>s+r.d,0);
+
   document.getElementById('d-total').textContent=total;
   document.getElementById('d-total-sub').textContent=`${operable} operados · ${canx} cancelados`;
   document.getElementById('d-ot').textContent=pct+'%';
@@ -357,7 +382,42 @@ function renderDHL(){
   document.getElementById('d-dly').textContent=totalDly>999?(totalDly/60).toFixed(1)+'h':totalDly+'m';
   document.getElementById('d-dly-sub').textContent=`${dlyRows.length} vuelos con demora`;
 
-  // Bar chart
+  // ── Gráfico comparativo (solo cuando año = TODOS) ──
+  const comparePanel=document.getElementById('dhl-compare-panel');
+  if(dhlYear==='all' && dhlMonth==='all'){
+    comparePanel.style.display='block';
+    const years=[...new Set(DHL.map(r=>r.an))].sort();
+    const yearColors={2024:'#8b5cf6',2025:'#0ea5e9',2026:'#f0a500'};
+    const datasets=years.map(y=>{
+      const yData=DHL.filter(r=>r.an===y);
+      const dlyMes={};for(let m=1;m<=12;m++)dlyMes[m]=0;
+      yData.forEach(r=>{if(r.d>0)dlyMes[r.mn]+=r.d;});
+      return{
+        label:`DHL ${y}`,
+        data:MONTHS.slice(1).map((_,i)=>dlyMes[i+1]),
+        borderColor:yearColors[y]||'#fff',
+        backgroundColor:(yearColors[y]||'#fff')+'22',
+        borderWidth:2,pointRadius:4,pointBackgroundColor:yearColors[y]||'#fff',
+        fill:false,tension:.3
+      };
+    });
+    // Legend
+    document.getElementById('dhl-compare-legend').innerHTML=years.map(y=>`
+      <div class="legend-item">
+        <div class="ldot" style="background:${yearColors[y]||'#fff'}"></div>DHL ${y}
+      </div>`).join('');
+    mkBar('dhl-compare');
+    charts['dhl-compare']=new Chart(document.getElementById('dhl-chart-compare'),{
+      type:'line',
+      data:{labels:MONTHS.slice(1),datasets},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:baseScales()}
+    });
+  } else {
+    comparePanel.style.display='none';
+    mkBar('dhl-compare');
+  }
+
+  // ── Bar chart mensual ──
   const mesMap={};for(let m=1;m<=12;m++)mesMap[m]={ot:0,dly:0,cx:0};
   data.forEach(r=>{
     if(isCX(r.mo))mesMap[r.mn].cx++;
@@ -377,7 +437,7 @@ function renderDHL(){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{...baseScales(),x:{...baseScales().x,stacked:true},y:{...baseScales().y,stacked:true}}}
   });
 
-  // DLY line
+  // ── DLY line ──
   const dlyMes={};for(let m=1;m<=12;m++)dlyMes[m]=0;
   data.forEach(r=>{if(r.d>0)dlyMes[r.mn]+=r.d;});
   mkBar('dhl-dly');
@@ -411,7 +471,6 @@ function renderMAS(){
   document.getElementById('m-avg').textContent=avgDly+'m';
   document.getElementById('m-avg-sub').textContent='por vuelo con demora';
 
-  // DLY por vuelo (bar horizontal-ish)
   const withDly=data.filter(r=>r.d>0).sort((a,b)=>a.f.localeCompare(b.f));
   mkBar('mas-dly');
   if(withDly.length){
@@ -424,7 +483,6 @@ function renderMAS(){
     document.getElementById('mas-chart-dly').parentElement.innerHTML='<div class="empty-state">Sin demoras en este período</div>';
   }
 
-  // GT line
   const withGT=data.filter(r=>r.g>0).sort((a,b)=>a.f.localeCompare(b.f));
   mkBar('mas-gt');
   if(withGT.length){
@@ -437,7 +495,6 @@ function renderMAS(){
 
   renderMotivos(data,'mas-motivos','mas');
 
-  // Stats panel
   const el=document.getElementById('mas-stats');
   const mats=[...new Set(data.map(r=>r.m).filter(Boolean))];
   const sups=[...new Set(data.map(r=>r.sup).filter(Boolean))];
@@ -469,7 +526,6 @@ function renderDLY(){
   document.getElementById('dly-top-cause').textContent=topCode?topCode[0]:'—';
   document.getElementById('dly-top-sub').textContent=topCode?`${topCode[1]} evento(s)`:'';
 
-  // Bar por evento
   mkBar('dly-bar');
   charts['dly-bar']=new Chart(document.getElementById('dly-chart'),{
     type:'bar',
@@ -480,7 +536,6 @@ function renderDLY(){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{...baseScales(),x:{...baseScales().x,ticks:{...baseScales().x.ticks,maxRotation:45,autoSkip:false}}}}
   });
 
-  // Pie por código
   const codeLabels=Object.keys(codes); const codeVals=codeLabels.map(c=>codes[c]);
   const COLORS=['#ef4444','#f59e0b','#0ea5e9','#8b5cf6','#10b981','#f97316'];
   mkBar('dly-pie');
@@ -490,7 +545,6 @@ function renderDLY(){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#6b89a8',font:{size:11},boxWidth:12}}}}
   });
 
-  // Tabla detallada
   const tbody=document.getElementById('dly-tbody');
   tbody.innerHTML=DLYD.map(r=>{
     const sev=r.d>=100?'dly-sev-high':r.d>=30?'dly-sev-med':r.d>0?'dly-sev-low':'';
