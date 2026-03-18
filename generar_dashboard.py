@@ -121,6 +121,7 @@ def main():
 
     fecha_update = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
     template = open("template.html", "r", encoding="utf-8").read()
+    template = template.replace("/*DHL_DATA*/[]", json.dumps(dhl_data, ensure_ascii=False))
     template = template.replace("/*MAS_DATA*/[]", json.dumps(mas_data, ensure_ascii=False))
     template = template.replace("/*DLY_DATA*/[]", json.dumps(dly_data, ensure_ascii=False))
     template = template.replace("__FECHA_UPD__", fecha_update)
