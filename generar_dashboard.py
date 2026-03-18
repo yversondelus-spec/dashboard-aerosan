@@ -99,9 +99,27 @@ def main():
     # ── DHL: leer TODAS las hojas que empiecen con "DHL" (2024, 2025, 2026) ──
     dhl_data = []
     for sh in xls.sheet_names:
-        if sh.strip().startswith("DHL") and not "Time" in sh:
+        if sh.strip().startswith("DHL") and "Time" not in sh:
+            sh_clean = sh.strip()
+
+            # Extraer el año del nombre de la hoja (ej: "DHL 2026" → 2026)
+            try:
+                sheet_year = int(sh_clean.split()[-1])
+            except ValueError:
+                sheet_year = None
+
             df = pd.read_excel(xls, sheet_name=sh, header=None, skiprows=3)
             rows = procesar_hitos(df)
+
+            # Filtrar solo las filas cuya fecha corresponde al año de la hoja
+            # Esto evita que filas con fechas de otro año contaminen el filtro
+            if sheet_year:
+                rows_filtradas = [r for r in rows if r["an"] == sheet_year]
+                descartadas = len(rows) - len(rows_filtradas)
+                if descartadas > 0:
+                    print(f"  ⚠ {sh}: {descartadas} filas descartadas (año != {sheet_year})")
+                rows = rows_filtradas
+
             dhl_data.extend(rows)
             print(f"OK {sh}: {len(rows)} filas")
 
