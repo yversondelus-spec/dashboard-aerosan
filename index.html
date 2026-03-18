@@ -161,14 +161,14 @@ body{background:var(--navy);color:var(--text);font-family:'Barlow',sans-serif;fo
 .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
 
 /* ── MOTIVOS ── */
-.motivo-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
+.motivo-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
 .motivo-row:last-child{border-bottom:none;}
-.motivo-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:2px;}
-.motivo-bar{height:4px;border-radius:2px;transition:width .5s;}
-.motivo-bar.dhl{background:linear-gradient(90deg,var(--accent),var(--accent3));}
-.motivo-bar.mas{background:linear-gradient(90deg,#0369a1,var(--mas));}
-.motivo-text{font-size:12px;color:var(--text);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.motivo-count{font-family:'JetBrains Mono';font-size:11px;color:var(--accent3);min-width:24px;text-align:right;}
+.motivo-bar-wrap{flex:1;height:7px;background:var(--border);border-radius:4px;}
+.motivo-bar{height:7px;border-radius:4px;transition:width .5s;}
+.motivo-bar.dhl{background:linear-gradient(90deg,#f97316,#fdba74);}
+.motivo-bar.mas{background:linear-gradient(90deg,#f97316,#fdba74);}
+.motivo-text{font-size:12px;color:var(--text);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
+.motivo-count{font-family:'JetBrains Mono';font-size:12px;color:#f97316;min-width:28px;text-align:right;font-weight:600;}
 
 /* ── GT STATS ── */
 .gt-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
@@ -237,7 +237,7 @@ body{background:var(--navy);color:var(--text);font-family:'Barlow',sans-serif;fo
   <div style="display:flex;align-items:center;gap:16px;">
     <span class="badge-live">● LIVE</span>
     <span class="topbar-date" id="clock">—</span>
-    <span style="font-size:11px;color:var(--muted);margin-left:12px">Actualizado: 18/03/2026 14:59</span>
+    <span style="font-size:11px;color:var(--muted);margin-left:12px">Actualizado: 18/03/2026 15:07</span>
   </div>
 </div>
 
@@ -546,7 +546,7 @@ function renderDHL(){
   mkBar('dhl-dly');
   charts['dhl-dly']=new Chart(document.getElementById('dhl-chart-dly'),{
     type:'line',
-    data:{labels,datasets:[{label:'DLY (min)',data:labels.map((_,i)=>dlyMes[i+1]),borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.1)',borderWidth:2,pointBackgroundColor:'#f97316',pointRadius:4,fill:true,tension:.3}]},
+    data:{labels,datasets:[{label:'DLY (min)',data:labels.map((_,i)=>dlyMes[i+1]),borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.15)',borderWidth:2.5,pointBackgroundColor:'#f97316',pointRadius:5,fill:true,tension:.3}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:baseScales()}
   });
 
@@ -579,7 +579,7 @@ function renderMAS(){
   if(withDly.length){
     charts['mas-dly']=new Chart(document.getElementById('mas-chart-dly'),{
       type:'bar',
-      data:{labels:withDly.map(r=>r.f.slice(5)),datasets:[{label:'DLY min',data:withDly.map(r=>r.d),backgroundColor:withDly.map(r=>r.d>100?'#ef4444':r.d>50?'#f59e0b':'#0ea5e9'),borderRadius:3}]},
+      data:{labels:withDly.map(r=>r.f.slice(5)),datasets:[{label:'DLY min',data:withDly.map(r=>r.d),backgroundColor:withDly.map(r=>r.d>100?'#ea580c':r.d>50?'#f97316':'#fdba74'),borderRadius:3}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{...baseScales(),x:{...baseScales().x,ticks:{...baseScales().x.ticks,maxRotation:45,autoSkip:false}}}}
     });
   } else {
@@ -634,7 +634,7 @@ function renderDLY(){
     type:'bar',
     data:{
       labels:data.map(r=>`${r.f.slice(5)} ${r.c}`),
-      datasets:[{label:'DLY min',data:data.map(r=>r.d),backgroundColor:data.map(r=>r.d>=100?'#ef4444':r.d>=30?'#f59e0b':'#2196f3'),borderRadius:4}]
+      datasets:[{label:'DLY min',data:data.map(r=>r.d),backgroundColor:data.map(r=>r.d>=100?'#ea580c':r.d>=30?'#f97316':'#fdba74'),borderRadius:4}]
     },
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{...baseScales(),x:{...baseScales().x,ticks:{...baseScales().x.ticks,maxRotation:45,autoSkip:false}}}}
   });
