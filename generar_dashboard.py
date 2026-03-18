@@ -129,5 +129,5 @@ def main():
         f.write(template)
     print(f"Dashboard generado OK — {fecha_update}")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
